@@ -1,9 +1,8 @@
-import express,{Express, Request, Response} from  'express';
+import express,{Express} from  'express';
 import { PORT } from './secret';
 import rootRouter from './routes';
 import { PrismaClient } from '@prisma/client';
 import { errorMiddleware } from './middleware/errors';
-import { SignupSchema } from './schema/user';
 
 const app:Express = express();
 app.use(express.json());

@@ -14,7 +14,7 @@ export class httpExecption extends Error {
 }
 
 export enum ErrorCode {
-    USER_NOT_FOUND        = 404,
+    NOT_FOUND             = 404,
     CONFLICT_REQUEST      = 409,
     INCORRECT_CREDENTIALS = 401,
     BAD_REQUEST           = 400,
