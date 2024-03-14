@@ -10,6 +10,7 @@ import { UnautorizedRequestException } from '../execptions/authentication/unauto
 import { ConflictRequestsExeption }    from '../execptions/database/conflict-request';
 import { UnprocessableEntity }         from '../execptions/validation/validation';
 import { LoginSchema, SignupSchema }   from '../schema/user';
+import { AuthenticatedRequest } from '../types/express';
 
 /*
     path api/auth/signup
@@ -113,6 +114,16 @@ export const login = async(req:Request<{},{}, loginRequestBody>, res:Response, n
                 )
             )
     }
+}
+
+/* 
+    Path: path api/auth/profile
+    method: get
+    purpose: get Profile
+*/
+
+export const me = async(req:AuthenticatedRequest, res:Response) => {
+    res.json({data:req.user})
 }
 
 

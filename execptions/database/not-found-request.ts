@@ -1,4 +1,4 @@
-import { ErrorCode, httpExecption } from "./root";
+import { ErrorCode, httpExecption } from "../root";
 
 export class NotFoundException extends httpExecption{
     constructor(message:string, errorCode:ErrorCode){

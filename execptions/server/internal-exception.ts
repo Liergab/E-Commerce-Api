@@ -1,4 +1,4 @@
-import {  httpExecption } from "./root"
+import {  httpExecption } from "../root"
 
 export class InternalException extends httpExecption{
     constructor( message:string, errors:any,  errorCode:number){

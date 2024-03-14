@@ -17,6 +17,7 @@ export enum ErrorCode {
     NOT_FOUND             = 404,
     CONFLICT_REQUEST      = 409,
     INCORRECT_CREDENTIALS = 401,
+    UNAUTHORIZED          = 401,
     BAD_REQUEST           = 400,
     UNPROCESSABLE_ENTITY  = 422,
     INTERNAL_ERROR        = 500
