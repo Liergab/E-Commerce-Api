@@ -10,7 +10,9 @@ import { UnautorizedRequestException } from '../execptions/authentication/unauto
 import { ConflictRequestsExeption }    from '../execptions/database/conflict-request';
 import { UnprocessableEntity }         from '../execptions/validation/validation';
 import { LoginSchema, SignupSchema }   from '../schema/user';
-import { AuthenticatedRequest } from '../types/express';
+import { AuthenticatedRequest }        from '../types/express';
+import { SignupRequestBody, 
+        loginRequestBody }             from '../types/auth/types';
 
 /*
     path api/auth/signup
@@ -18,11 +20,7 @@ import { AuthenticatedRequest } from '../types/express';
     signup
 */
 
-type SignupRequestBody = {
-    email    : string;
-    password : string,
-    name     : string
-}
+
 export const signup = async(req:Request<{}, {}, SignupRequestBody>,res:Response, next:NextFunction) => {
    
     try {
@@ -76,10 +74,7 @@ export const signup = async(req:Request<{}, {}, SignupRequestBody>,res:Response,
     purpose: signup
 
 */
-type loginRequestBody = {
-    email    : string;
-    password : string;
-}
+
 export const login = async(req:Request<{},{}, loginRequestBody>, res:Response, next:NextFunction) => {
  
     try {
