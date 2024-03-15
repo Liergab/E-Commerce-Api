@@ -18,12 +18,14 @@ export const  authMiddleware = async(req:AuthenticatedRequest, res:Response, nex
                 select:{
                     name:true,
                     email:true,
+                    role:true,
                     createAt:true,
                     updatedAt:true,
                     id:true,
                 }
             })
             if(!user){
+                
                 next(new UnautorizedRequestException('Unauthorized', ErrorCode.UNAUTHORIZED))
             }
             req.user = user
@@ -32,6 +34,6 @@ export const  authMiddleware = async(req:AuthenticatedRequest, res:Response, nex
             next(new UnautorizedRequestException('Unauthorized', ErrorCode.UNAUTHORIZED))
         }
     }else{
-    next(new UnautorizedRequestException('Unauthorized', ErrorCode.UNAUTHORIZED))
+        next(new UnautorizedRequestException('Unauthorized', ErrorCode.UNAUTHORIZED))
     }
 }
