@@ -1,12 +1,13 @@
 import { Request } from 'express';
-import { User } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
-    id: number;
-    name: string;
-    email: string;
-    createAt: Date;
-    updatedAt: Date;
-  } | null;
+          id: number;
+          name: string;
+          email: string;
+          role : Role
+          createAt: Date;
+          updatedAt: Date;
+        } | null;
 }
