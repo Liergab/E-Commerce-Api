@@ -98,13 +98,29 @@ export const deleteAddress = async(req:AuthenticatedRequest, res:Response, next:
 
 */
 
-// export const getaddress = (req, res, next) => {
-//     try {
-        
-//     } catch (error) {
-        
-//     }
-// }
+export const getaddress = async(req:AuthenticatedRequest, res:Response, next:NextFunction) => {
+    try {
+        const address = await prismaClient.address.findMany({
+            where:{
+                userId:req?.user?.id
+            },
+            include:{
+                user:true
+            },
+        })
+
+        res.status(200).json({data:address})
+
+    } catch (err:any) {
+        next(
+            new InternalException(
+                'Internal Errror', 
+                err?.issues,
+                ErrorCode.INTERNAL_ERROR
+            )
+        )
+    }
+}
 
 
 

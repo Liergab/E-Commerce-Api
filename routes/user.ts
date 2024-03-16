@@ -5,8 +5,8 @@ import { adminMiddleware } from '../middleware/adminMiddleware';
 
 const userRouter = express.Router();
 
-userRouter.post('/address', [authMiddleware],controller.createAddress)
+userRouter.post('/address', [authMiddleware],       controller.createAddress)
 userRouter.delete('/address/:id', [authMiddleware], controller.deleteAddress)
-userRouter.get('/address', [authMiddleware, adminMiddleware])
+userRouter.get('/address', [authMiddleware],         controller.getaddress)
 
 export default userRouter
