@@ -6,10 +6,10 @@ export class httpExecption extends Error {
 
     constructor(message:string, errorCode:ErrorCode, statusCode:number, errors:any ){
         super(message)
-        this.message = message
-        this.errorCode = errorCode
+        this.message    = message
+        this.errorCode  = errorCode
         this.statusCode = statusCode
-        this.errors = errors 
+        this.errors     = errors 
     }
 }
 
@@ -20,5 +20,6 @@ export enum ErrorCode {
     UNAUTHORIZED          = 401,
     BAD_REQUEST           = 400,
     UNPROCESSABLE_ENTITY  = 422,
-    INTERNAL_ERROR        = 500
+    INTERNAL_ERROR        = 500,
+    FORBIDDEN             = 403
 }

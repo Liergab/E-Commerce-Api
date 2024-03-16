@@ -8,6 +8,6 @@ productRoutes.post('/',     [authMiddleware, adminMiddleware], controller.create
 productRoutes.patch('/:id', [authMiddleware, adminMiddleware], controller.updateProduct)
 productRoutes.delete('/:id',[authMiddleware, adminMiddleware], controller.deleteProduct)
 productRoutes.get('/:id',   [authMiddleware, adminMiddleware], controller.getProductById)
-productRoutes.get('/all',   [authMiddleware, adminMiddleware], controller.getAllProduct)
+productRoutes.get('/',   [authMiddleware, adminMiddleware], controller.getAllProduct)
 
 export default productRoutes

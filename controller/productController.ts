@@ -154,9 +154,14 @@ export const deleteProduct = async(req:Request,res:Response,next:NextFunction) =
 
 export const getAllProduct = async(req:Request, res:Response, next:NextFunction) => {
     try {
-        const product = await prismaClient.product.findMany()
+        const{page} = req.query
+        const count = await prismaClient.product.count()
+        const products = await prismaClient.product.findMany({
+            skip:Number(page) || 0,
+            take:5
+        }) //pagination
 
-        res.status(200).json({data:product})
+        res.status(200).json({count, data: products })
     } catch (err:any) {
         next(
             new InternalException(
