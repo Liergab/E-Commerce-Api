@@ -18,3 +18,9 @@ export const createAddressSchema = z.object({
     city    : z.string().min(1,'City is required to fill up!'),
     country : z.string().min(1,'Country is required to fill up!'),
 })
+
+export const updateUserSchema =  z.object({
+    name                    : z.string().optional(),
+    defaultBillingAddress   : z.number().optional(),
+    defaultShippingAddress  : z.number().optional()
+})

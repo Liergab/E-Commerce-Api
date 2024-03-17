@@ -1,12 +1,14 @@
 import { NextFunction, Request, Response } from "express";
-import { AuthenticatedRequest }   from "../types/express";
-import { prismaClient }           from "..";
-import { InternalException }      from "../execptions/server/internal-exception";
-import { ErrorCode }              from "../execptions/root";
-import { createAddressSchema } from "../schema/user";
-import { createAddressRequestBody } from "../types/user/types";
-import { NotFoundException } from "../execptions/database/not-found-request";
+import { AuthenticatedRequest }      from "../types/express";
+import { prismaClient }              from "..";
+import { InternalException }         from "../execptions/server/internal-exception";
+import { ErrorCode }                 from "../execptions/root";
+import { createAddressSchema,
+         updateUserSchema }          from "../schema/user";
+import { createAddressRequestBody }  from "../types/user/types";
+import { NotFoundException }         from "../execptions/database/not-found-request";
 import { ForbiddenRequestException } from "../execptions/authentication/forbidden-request";
+import { Address }                   from "@prisma/client";
 
 /* 
     Path: path api/user/address
@@ -111,6 +113,75 @@ export const getaddress = async(req:AuthenticatedRequest, res:Response, next:Nex
 
         res.status(200).json({data:address})
 
+    } catch (err:any) {
+        next(
+            new InternalException(
+                'Internal Errror', 
+                err?.issues,
+                ErrorCode.INTERNAL_ERROR
+            )
+        )
+    }
+}
+
+/* 
+    Path: path api/user/id
+    method: PUT
+    purpose:UPDATE of user
+
+*/
+
+export const updateUser = async(req:AuthenticatedRequest, res:Response, next:NextFunction) => {
+  
+    try {
+        
+        updateUserSchema.parse(req.body)
+
+        const{name, defaultBillingAddress, defaultShippingAddress} = req.body
+        let hasError = false;       
+
+          const ShippingAddress:Address = await prismaClient.address.findFirstOrThrow({
+                   where:{id:defaultShippingAddress}
+            })
+                
+            if(ShippingAddress.userId !== req?.user?.id){
+                next( 
+                    new ForbiddenRequestException(
+                        'Address shipping does not belong to user',
+                         ErrorCode.FORBIDDEN
+                    )
+                )
+                hasError = true;
+            }
+                  
+            const BillingAddress:Address = await prismaClient.address.findFirstOrThrow({
+                where:{id:defaultBillingAddress}
+            })
+            if(BillingAddress.userId !== req?.user?.id){
+                next( 
+                    new ForbiddenRequestException(
+                        'Address billing does not belong to user',
+                         ErrorCode.FORBIDDEN
+                    )
+                )
+                hasError = true;
+            }
+    
+           if(!hasError){
+                const user = await prismaClient.user.update({
+                    where:{
+                        id:req?.user?.id
+                    },
+                    data:{
+                        name,
+                        defaultBillingAddress,
+                        defaultShippingAddress
+                    }
+                })
+            
+                return res.status(200).json({data:user})
+           }
+    
     } catch (err:any) {
         next(
             new InternalException(
