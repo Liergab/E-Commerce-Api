@@ -118,7 +118,17 @@ export const login = async(req:Request<{},{}, loginRequestBody>, res:Response, n
 */
 
 export const me = async(req:AuthenticatedRequest, res:Response) => {
-    res.json({data:req.user})
+   
+    const user = await prismaClient.user.findFirst({
+        where:{
+            id:req?.user?.id
+        },
+        include:{
+            addresses:true
+        }
+    })
+
+    res.json({data:user})
 }
 
 
