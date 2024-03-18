@@ -1,11 +1,10 @@
 import { NextFunction, Response } from "express";
 import { AuthenticatedRequest }   from "../types/express";
-import { createCart }             from "../schema/cart";
+import { createCart, updateCart }             from "../schema/cart";
 import { NotFoundException }      from "../execptions/database/not-found-request";
 import { ErrorCode }              from "../execptions/root";
-import {  CartItem, Product }               from "@prisma/client";
 import { prismaClient }           from "..";
-import { cartCreateRequestBody }  from "../types/cart/types";
+import { cartCreateRequestBody, cartUpdateRequestBody }  from "../types/cart/types";
 import { InternalException }      from "../execptions/server/internal-exception";
 import { BadRequestsExeption }    from "../execptions/validation/bad-request";
 import { ForbiddenRequestException } from "../execptions/authentication/forbidden-request";
@@ -20,7 +19,9 @@ import { ForbiddenRequestException } from "../execptions/authentication/forbidde
 export const addItemTocart = async(req:AuthenticatedRequest,res:Response,next:NextFunction) => {
     try {
         createCart.parse(req.body)
+
         let hasError = false
+
         const {productId, quantity} = req.body as cartCreateRequestBody
 
         const findProductId = await prismaClient.product.findFirst({
@@ -108,9 +109,65 @@ export const deleteItemTocart = async(req:AuthenticatedRequest,res:Response,next
 
 export const changeQuantity = async(req:AuthenticatedRequest,res:Response,next:NextFunction) => {
     try {
-        
-    } catch (error) {
-        
+        updateCart.parse(req.body)
+
+        const {id} = req.params
+
+        const {quantity} = req.body as cartUpdateRequestBody
+
+        const convertIdToNumber = Number(id);
+
+        let hasError = false
+
+        const findCartItem = await prismaClient.cartItem.findFirst({
+            where:{
+                id:convertIdToNumber
+            }
+        })
+        if(!findCartItem){
+            next(
+                new NotFoundException(
+                    'Id not found', 
+                     ErrorCode.NOT_FOUND
+                )
+            )
+            hasError = true
+        }
+
+        if(findCartItem?.userId !== req.user?.id){
+            next(
+                new ForbiddenRequestException(
+                    'Cant change quantity of other user cart',
+                     ErrorCode.FORBIDDEN
+                )
+            )
+            hasError = true
+        }
+
+      
+
+        if(!hasError){
+            const updateQuantityCart = await prismaClient.cartItem.update({
+                where:{
+                    id:findCartItem?.id
+                },
+                data:{
+                    quantity:quantity
+                }
+            })
+
+            res.status(200).json({data:updateQuantityCart})
+        }
+
+
+    } catch (err:any) {
+        next( 
+            new InternalException(
+                'Internal Error',
+                 err?.issues,
+                 ErrorCode.UNPROCESSABLE_ENTITY
+            )
+        )
     }
 }
 
