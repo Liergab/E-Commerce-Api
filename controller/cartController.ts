@@ -131,6 +131,7 @@ export const changeQuantity = async(req:AuthenticatedRequest,res:Response,next:N
                      ErrorCode.NOT_FOUND
                 )
             )
+
             hasError = true
         }
 
@@ -174,8 +175,25 @@ export const changeQuantity = async(req:AuthenticatedRequest,res:Response,next:N
 
 export const getCart = async(req:AuthenticatedRequest, res:Response, next:NextFunction) => {
     try {
-        
-    } catch (error) {
-        
+        const cart = await prismaClient.cartItem.findMany({
+            where:{
+                userId:req.user?.id
+            },
+            include:{
+                product:true
+            }
+        })
+        res.status(200).json({
+            name:req.user?.name,
+            data:cart
+        })
+    } catch (err:any) {
+        next( 
+            new InternalException(
+                'Internal Error',
+                 err?.issues,
+                 ErrorCode.UNPROCESSABLE_ENTITY
+            )
+        )
     }
 }
