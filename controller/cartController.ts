@@ -3,7 +3,7 @@ import { AuthenticatedRequest }   from "../types/express";
 import { createCart }             from "../schema/cart";
 import { NotFoundException }      from "../execptions/database/not-found-request";
 import { ErrorCode }              from "../execptions/root";
-import {  Product }               from "@prisma/client";
+import {  CartItem, Product }               from "@prisma/client";
 import { prismaClient }           from "..";
 import { cartCreateRequestBody }  from "../types/cart/types";
 import { InternalException }      from "../execptions/server/internal-exception";
@@ -23,7 +23,7 @@ export const addItemTocart = async(req:AuthenticatedRequest,res:Response,next:Ne
         let hasError = false
         const {productId, quantity} = req.body as cartCreateRequestBody
 
-        const findProductId:Product = await prismaClient.product.findFirstOrThrow({
+        const findProductId = await prismaClient.product.findFirst({
             where:{
                 id:productId
             }
@@ -36,7 +36,7 @@ export const addItemTocart = async(req:AuthenticatedRequest,res:Response,next:Ne
 
         const findProductIdInCart = await prismaClient.cartItem.findFirst({
             where:{
-                id:findProductId.id
+                productId:findProductId?.id
             }
         })
 
@@ -48,7 +48,7 @@ export const addItemTocart = async(req:AuthenticatedRequest,res:Response,next:Ne
             const addToCart = await prismaClient.cartItem.create({
                 data:{
                     userId    :req?.user?.id!,
-                    productId :findProductId.id,
+                    productId :findProductId?.id!,
                     quantity  :quantity
                 }
             })
@@ -73,6 +73,7 @@ export const deleteItemTocart = async(req:AuthenticatedRequest,res:Response,next
         const {id} = req.params
         const convertIdToNumber = Number(id)
         let hasError = false
+
         const findCart = await prismaClient.cartItem.findFirstOrThrow({
             where:{
                 id:convertIdToNumber
@@ -81,16 +82,10 @@ export const deleteItemTocart = async(req:AuthenticatedRequest,res:Response,next
 
         if(findCart.userId !== req.user?.id){
             next(
-                new ForbiddenRequestException(
-                    'You cant delete the carts of other user',
-                     ErrorCode.FORBIDDEN
-                )
-            )
-            
+                new ForbiddenRequestException('You cant delete the carts of other user', ErrorCode.FORBIDDEN))
             hasError = true
         }
         if(!hasError){
-
             const deleteCart = await prismaClient.cartItem.delete({
                 where:{
                     id:findCart.id
