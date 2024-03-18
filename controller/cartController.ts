@@ -1,5 +1,14 @@
 import { NextFunction, Response } from "express";
-import { AuthenticatedRequest } from "../types/express";
+import { AuthenticatedRequest }   from "../types/express";
+import { createCart }             from "../schema/cart";
+import { NotFoundException }      from "../execptions/database/not-found-request";
+import { ErrorCode }              from "../execptions/root";
+import {  Product }               from "@prisma/client";
+import { prismaClient }           from "..";
+import { cartCreateRequestBody }  from "../types/cart/types";
+import { InternalException }      from "../execptions/server/internal-exception";
+import { BadRequestsExeption }    from "../execptions/validation/bad-request";
+import { ForbiddenRequestException } from "../execptions/authentication/forbidden-request";
 
 
 /* 
@@ -10,17 +19,94 @@ import { AuthenticatedRequest } from "../types/express";
 
 export const addItemTocart = async(req:AuthenticatedRequest,res:Response,next:NextFunction) => {
     try {
+        createCart.parse(req.body)
+        let hasError = false
+        const {productId, quantity} = req.body as cartCreateRequestBody
+
+        const findProductId:Product = await prismaClient.product.findFirstOrThrow({
+            where:{
+                id:productId
+            }
+        })
+
+        if(!findProductId){
+            next(new NotFoundException('Product Id not found!', ErrorCode.NOT_FOUND))
+            hasError = true
+        }
+
+        const findProductIdInCart = await prismaClient.cartItem.findFirst({
+            where:{
+                id:findProductId.id
+            }
+        })
+
+        if(findProductIdInCart){
+            next(new BadRequestsExeption('Product already in cart', ErrorCode.BAD_REQUEST))
+            hasError = true
+        }
+        if(!hasError){
+            const addToCart = await prismaClient.cartItem.create({
+                data:{
+                    userId    :req?.user?.id!,
+                    productId :findProductId.id,
+                    quantity  :quantity
+                }
+            })
+    
+            res.status(201).json({data:addToCart})
+        }
+      
         
-    } catch (error) {
-        
+    } catch (err:any) {
+        next( 
+            new InternalException(
+                'Internal Error',
+                 err?.issues,
+                 ErrorCode.UNPROCESSABLE_ENTITY
+            )
+        )
     }
 }
 
 export const deleteItemTocart = async(req:AuthenticatedRequest,res:Response,next:NextFunction) => {
     try {
-        
-    } catch (error) {
-        
+        const {id} = req.params
+        const convertIdToNumber = Number(id)
+        let hasError = false
+        const findCart = await prismaClient.cartItem.findFirstOrThrow({
+            where:{
+                id:convertIdToNumber
+            }
+        })
+
+        if(findCart.userId !== req.user?.id){
+            next(
+                new ForbiddenRequestException(
+                    'You cant delete the carts of other user',
+                     ErrorCode.FORBIDDEN
+                )
+            )
+            
+            hasError = true
+        }
+        if(!hasError){
+
+            const deleteCart = await prismaClient.cartItem.delete({
+                where:{
+                    id:findCart.id
+                }
+            })
+
+            return res.status(200).json('Successfully Deleted!')
+        }
+    } catch (err:any) {
+        next( 
+            new InternalException(
+                'Internal Error',
+                 err?.issues,
+                 ErrorCode.UNPROCESSABLE_ENTITY
+            )
+        )
     }
 }
 
@@ -34,7 +120,7 @@ export const changeQuantity = async(req:AuthenticatedRequest,res:Response,next:N
 }
 
 
-export const getCart = async(req:AuthenticatedRequest,res:Response,next:NextFunction) => {
+export const getCart = async(req:AuthenticatedRequest, res:Response, next:NextFunction) => {
     try {
         
     } catch (error) {
