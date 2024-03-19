@@ -13,6 +13,7 @@ import { LoginSchema, SignupSchema }   from '../schema/user';
 import { AuthenticatedRequest }        from '../types/express';
 import { SignupRequestBody, 
         loginRequestBody }             from '../types/auth/types';
+import sendEmail from '../config/mailer';
 
 /*
     path api/auth/signup
@@ -47,6 +48,13 @@ export const signup = async(req:Request<{}, {}, SignupRequestBody>,res:Response,
             });
 
         if(newUser){
+            await sendEmail(
+                'Thank You for Registering!',
+                email,
+                '', // Empty URL
+                `<p>Thank you, ${name}, for registering in Bryan Ecommerce Backend!</p><p>We appreciate your registration and look forward to serving you.</p>`
+            );
+
             res.status(201).json({data:newUser});
         }else{
             next(
