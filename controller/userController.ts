@@ -9,6 +9,7 @@ import { createAddressRequestBody }  from "../types/user/types";
 import { NotFoundException }         from "../execptions/database/not-found-request";
 import { ForbiddenRequestException } from "../execptions/authentication/forbidden-request";
 import { Address }                   from "@prisma/client";
+import { BadRequestsExeption } from "../execptions/validation/bad-request";
 
 /* 
     Path: path api/user/address
@@ -19,18 +20,42 @@ import { Address }                   from "@prisma/client";
 export const createAddress = async (req:AuthenticatedRequest, res:Response, next:NextFunction) => {
     try {
         createAddressSchema.parse(req.body)
+
         const {lineOne, lineTwo, city, country, pincode} = req.body as createAddressRequestBody
-        const address = await prismaClient.address.create({
-            data:{
-                lineOne,
-                lineTwo,
-                city,
-                country,
-                pincode,
-                userId:Number(req?.user?.id)
+
+        let hasError = false
+
+        const currentUser =  await prismaClient.address.findFirst({
+            where:{
+                userId : req.user?.id
             }
         })
-        res.status(201).json({data:address})
+
+        if(req.user?.id == currentUser?.userId){
+            next(
+                new BadRequestsExeption(
+                    'You already have Address!',
+                     ErrorCode.BAD_REQUEST
+                )
+            )
+
+            hasError = true
+        }
+        if(!hasError){
+
+            const address = await prismaClient.address.create({
+                data:{
+                    lineOne,
+                    lineTwo,
+                    city,
+                    country,
+                    pincode,
+                    userId:Number(req?.user?.id)
+                }
+            })
+            res.status(201).json({data:address})
+            
+        }
         
     } catch (err:any) {
         next(

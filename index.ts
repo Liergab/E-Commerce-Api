@@ -10,7 +10,7 @@ app.use(express.urlencoded({extended:true}));
 app.use('/api/',rootRouter);
 
 export const prismaClient = new PrismaClient({
-    log:['query']
+    // log:['query']
 });
 
 app.use(errorMiddleware)

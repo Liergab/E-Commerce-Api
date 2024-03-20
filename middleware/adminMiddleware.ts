@@ -7,6 +7,6 @@ export const adminMiddleware = async(req:AuthenticatedRequest, res:Response, nex
     if(req.user?.role == "ADMIN"){
         next()
     }else{
-        next(new UnautorizedRequestException('Unauthorized', ErrorCode.UNAUTHORIZED))
+        next(new UnautorizedRequestException('Unauthorized Your not Admin', ErrorCode.UNAUTHORIZED))
     }
 }
