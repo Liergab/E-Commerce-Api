@@ -129,10 +129,12 @@ export const me = async(req:AuthenticatedRequest, res:Response) => {
    
     const user = await prismaClient.user.findFirst({
         where:{
-            id:req?.user?.id
+            id : req?.user?.id
         },
         include:{
-            addresses:true
+            addresses  : true,
+            cart_items : true,
+            orders     : true
         }
     })
 
