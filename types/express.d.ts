@@ -6,8 +6,10 @@ export interface AuthenticatedRequest extends Request {
           id: number;
           name: string;
           email: string;
-          role : Role
+          role : Role;
           createAt: Date;
           updatedAt: Date;
+          defaultShippingAddress : number | null
+          defaultBillingAddress  : number | null
         } | null;
 }
