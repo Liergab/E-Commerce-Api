@@ -11,7 +11,24 @@ app.use('/api/',rootRouter);
 
 export const prismaClient = new PrismaClient({
     // log:['query']
-});
+}).$extends({ //extend every time we used model address we can get the formatted date that came from adress model
+    result:{
+        address:{
+            formattedAddress:{
+                needs:{
+                    lineOne:true,
+                    lineTwo:true,
+                    city:true,
+                    country:true,
+                    pincode:true
+                },
+                compute:(addr) => {
+                    return `${addr.lineOne}, ${addr.lineTwo}, ${addr.city}, ${addr.country}-${addr.pincode}`
+                }
+            }
+        }
+    }
+})
 
 app.use(errorMiddleware)
 

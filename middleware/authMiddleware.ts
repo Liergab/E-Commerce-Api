@@ -22,6 +22,8 @@ export const  authMiddleware = async(req:AuthenticatedRequest, res:Response, nex
                     createAt:true,
                     updatedAt:true,
                     id:true,
+                    defaultBillingAddress:true,
+                    defaultShippingAddress:true
                 }
             })
             if(!user){
