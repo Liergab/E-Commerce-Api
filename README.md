@@ -16,13 +16,16 @@
   * Extends & Transaction.
  <br>
 - Zod
+
   * I'm using zod for schema and validation
   <br>
 - Exceptions
+
   * Creating reusable Custom Error Class.
  <br>
 - Github Action
-  * Simple github/workflow for build when pull and push      trigger in my repository.
+
+   * Simple github/workflow for build when pull and push      trigger in my repository.
   <br>
 
 ## ERD
