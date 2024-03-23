@@ -9,7 +9,7 @@ import { createAddressRequestBody }  from "../types/user/types";
 import { NotFoundException }         from "../execptions/database/not-found-request";
 import { ForbiddenRequestException } from "../execptions/authentication/forbidden-request";
 import { Address }                   from "@prisma/client";
-import { BadRequestsExeption } from "../execptions/validation/bad-request";
+import { BadRequestsExeption }       from "../execptions/validation/bad-request";
 
 /* 
     Path: path api/user/address
@@ -68,6 +68,7 @@ export const createAddress = async (req:AuthenticatedRequest, res:Response, next
     }
 }
 
+//################################################################################################################//
 /* 
     Path: path api/user/address
     method: DELETE
@@ -117,7 +118,7 @@ export const deleteAddress = async(req:AuthenticatedRequest, res:Response, next:
     }
 }
 
-
+//################################################################################################################//
 /* 
     Path: path api/user/address
     method: DELETE
@@ -149,6 +150,7 @@ export const getaddress = async(req:AuthenticatedRequest, res:Response, next:Nex
     }
 }
 
+//################################################################################################################//
 /* 
     Path: path api/user/id
     method: PUT
@@ -218,16 +220,125 @@ export const updateUser = async(req:AuthenticatedRequest, res:Response, next:Nex
     }
 }
 
+//################################################################################################################//
+/* 
+    Path: path api/user/
+    method: get
+    purpose:get all user
+
+*/
+
 export const listUser = async(req:Request, res:Response, next:NextFunction) => {
-
+    try {
+        const user = await prismaClient.user.findMany({
+            select:{
+                id        : true,
+                name      : true,
+                role      : true,
+                email     : true,
+                createAt  : true,
+                updatedAt : true,
+                defaultShippingAddress:true,
+                defaultBillingAddress:true
+            }
+        })
+        res.status(200).json({data:user})
+    } catch (err:any) {
+        next(
+            new InternalException(
+                'Internal Errror', 
+                err?.issues,
+                ErrorCode.INTERNAL_ERROR
+            )
+        )
+    }
 }
 
-export const getUserById = async(req, res, next) => {
+//################################################################################################################//
+/* 
+    Path: Path api/user/id
+    method: GET
+    purpose:Get  user by id
 
+*/
+
+export const getUserById = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        const{id} = req.params
+        const convertIdToNumber = Number(id)
+        const user = await prismaClient.user.findFirst({
+            where:{
+                id:convertIdToNumber
+            },
+            select:{
+                id        : true,
+                name      : true,
+                role      : true,
+                email     : true,
+                createAt  : true,
+                updatedAt : true,
+                defaultShippingAddress:true,
+                defaultBillingAddress:true
+            }
+        })
+        if(user){
+            res.status(200).json({data:user})
+        }else{
+            next(
+                new NotFoundException(
+                    'Id not found', 
+                    ErrorCode.NOT_FOUND
+                )
+            )
+        }
+      
+    } catch (err:any) {
+        next(
+            new InternalException(
+                'Internal Errror', 
+                err?.issues,
+                ErrorCode.INTERNAL_ERROR
+            )
+        )
+    }
 }
+//################################################################################################################//
+/* 
+    Path: path api/user/id/role
+    method: PUT
+    purpose:Change user role
 
-export const changeUserRole = async(req, res, next) => {
-
+*/
+export const changeUserRole = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        const{id} = req.params
+        const {role} = req.body
+        const convertIdToNumber = Number(id)
+        const currentUser = await prismaClient.user.findUnique({
+            where: { id: convertIdToNumber },
+          });
+      
+          if (!currentUser) {
+            return res.status(404).json({ message: 'User not found' });
+          }
+        const user = await prismaClient.user.update({
+            where:{
+                id:convertIdToNumber
+            },
+            data:{
+                role: currentUser.role === 'ADMIN' ? 'USER' : 'ADMIN',
+            }
+        })
+        return res.status(200).json({data:user})
+    } catch (err:any) {
+        next(
+            new InternalException(
+                'Internal Errror', 
+                err?.issues,
+                ErrorCode.INTERNAL_ERROR
+            )
+        )
+    }
 }
 
 
