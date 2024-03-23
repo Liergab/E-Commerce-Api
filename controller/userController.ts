@@ -218,6 +218,19 @@ export const updateUser = async(req:AuthenticatedRequest, res:Response, next:Nex
     }
 }
 
+export const listUser = async(req:Request, res:Response, next:NextFunction) => {
+
+}
+
+export const getUserById = async(req, res, next) => {
+
+}
+
+export const changeUserRole = async(req, res, next) => {
+
+}
+
+
 
 
 

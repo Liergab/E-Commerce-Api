@@ -4,6 +4,8 @@ import { AuthenticatedRequest } from "../types/express";
 import { prismaClient } from "..";
 import { InternalException } from "../execptions/server/internal-exception";
 import { ErrorCode } from "../execptions/root";
+import { NotFoundException } from "../execptions/database/not-found-request";
+import { ForbiddenRequestException } from "../execptions/authentication/forbidden-request";
 
 /*
     path api/order/
@@ -39,6 +41,10 @@ export const createOrder = async(req: AuthenticatedRequest, res:Response, next:N
                     id:req.user?.defaultShippingAddress!
                 }
             })
+
+            if(!address){
+                return res.json({message:'Update and set up your Billing and shipping address'})
+            }
 
             const order = await tx.order.create({
                 data:{
@@ -87,9 +93,20 @@ export const createOrder = async(req: AuthenticatedRequest, res:Response, next:N
 */
 export const getOrder = async(req: AuthenticatedRequest, res:Response, next:NextFunction) => {
     try {
-        
-    } catch (error) {
-        
+        const order = await prismaClient.order.findMany({
+            where:{
+                userId:req.user?.id
+            }
+        })
+        return res.status(200).json({data:order})
+    } catch (err:any) {
+        next(
+            new InternalException(
+                'Internal Error',
+                 err?.issues,
+                 ErrorCode.INTERNAL_ERROR
+            )  
+        )
     }
 }
 
@@ -98,11 +115,62 @@ export const getOrder = async(req: AuthenticatedRequest, res:Response, next:Next
     methos put
     update order
 */
-export const cancelOrder = async(req: AuthenticatedRequest, res:Response, next:NextFunction) => {
+export const cancelOrder = async(req:AuthenticatedRequest, res:Response, next:NextFunction) => {
     try {
+        const {id} = req.params
         
-    } catch (error) {
-        
+        const convertIdIntoNumber = Number(id)
+
+        return await prismaClient.$transaction(async(tx)=>{
+
+            const order = await tx.order.update({
+                where:{
+                    id:convertIdIntoNumber
+                },
+                data:{
+                    status:'CANCELLED'
+                }
+            }) 
+
+            if(order?.userId !== req.user?.id){
+                next(
+                    new ForbiddenRequestException(
+                        'You can update others detail',
+                         ErrorCode.FORBIDDEN
+                    )
+                )
+            }
+
+             await tx.orderEvent.updateMany({
+                where:{
+                    orderId:order.id
+                },
+                data:{
+            
+                    status:'CANCELLED'
+                }
+            })
+    
+            if(order){
+                res.status(200).json({message:'Cancel Order!'})
+            }else{
+                next(
+                    new NotFoundException(
+                        'Order not found',
+                        ErrorCode.NOT_FOUND
+                    )
+                )
+            }
+
+        })
+    } catch (err:any) {
+        next(
+            new InternalException(
+                'Internal Error',
+                 err?.issues,
+                 ErrorCode.INTERNAL_ERROR
+            )  
+        )
     }
 }
 
@@ -113,9 +181,36 @@ export const cancelOrder = async(req: AuthenticatedRequest, res:Response, next:N
 */
 export const getOrderById = async(req: AuthenticatedRequest, res:Response, next:NextFunction) => {
     try {
-        
-    } catch (error) {
-        
+        const{id} = req.params
+        const convertIdToNumber = Number(id)
+
+        const order = await prismaClient.order.findFirst({
+            where:{
+                id:convertIdToNumber
+            },
+            include:{
+                order_events:true,
+                order_products:true
+            }
+        })
+        if(order){
+            res.status(200).json({data:order})
+        }else{
+            next(
+                 new NotFoundException(
+                    'Order not found (ID)',
+                     ErrorCode.NOT_FOUND
+                )
+            )
+        }  
+    } catch (err:any) {
+        next(
+            new InternalException(
+                'Internal Error',
+                 err?.issues,
+                 ErrorCode.INTERNAL_ERROR
+            )  
+        )
     }
 }
 

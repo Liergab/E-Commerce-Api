@@ -4,9 +4,9 @@ import * as controller from '../controller/orderController'
 const orderRouter = express.Router()
 
 orderRouter.post('/',[authMiddleware], controller.createOrder)
-orderRouter.get('/',[authMiddleware])
-orderRouter.put('/:id',[authMiddleware])
-orderRouter.get('/:id',[authMiddleware])
+orderRouter.get('/user',[authMiddleware],  controller.getOrder)
+orderRouter.put('/:id',[authMiddleware], controller.cancelOrder)
+orderRouter.get('/:id',[authMiddleware], controller.getOrderById)
 
 
 
