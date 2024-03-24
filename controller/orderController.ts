@@ -1,5 +1,5 @@
 
-import { NextFunction, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { AuthenticatedRequest } from "../types/express";
 import { prismaClient } from "..";
 import { InternalException } from "../execptions/server/internal-exception";
@@ -85,7 +85,7 @@ export const createOrder = async(req: AuthenticatedRequest, res:Response, next:N
         )
     }
 }
-
+// ###############################################################################################################//
 /*
     path api/order/
     methos get
@@ -109,7 +109,7 @@ export const getOrder = async(req: AuthenticatedRequest, res:Response, next:Next
         )
     }
 }
-
+// ###############################################################################################################//
 /*
     path api/order/id
     methos put
@@ -174,6 +174,7 @@ export const cancelOrder = async(req:AuthenticatedRequest, res:Response, next:Ne
     }
 }
 
+// ###############################################################################################################//
 /*
     path api/order/id
     methos get
@@ -214,4 +215,127 @@ export const getOrderById = async(req: AuthenticatedRequest, res:Response, next:
     }
 }
 
+// ###############################################################################################################//
+/*
+    path api/order/id
+    method get
+    Get All Order
+*/
 
+export const listAllOrder = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        let whereClause ={}
+        const {status} = req.query
+        const{page} = req.query
+        if(status){
+            whereClause={
+                status
+            }
+        }
+        const order = await prismaClient.order.findMany({
+            where:whereClause,
+            skip: Number(page) || 0,
+            take:5,
+            
+        })
+       
+        res.status(200).json({data:order})
+         
+    } catch (err:any) {
+        next(
+            new InternalException(
+                'Internal Error',
+                 err?.issues,
+                 ErrorCode.INTERNAL_ERROR
+            )  
+        )
+    }
+}
+
+// ###############################################################################################################//
+/*
+    path api/order/id/status
+    method PUT
+    Chnage Status
+*/
+
+export const changeStatus = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        const{id} = req.params
+        const{status} = req.body
+        const convertIdIntoNumber = Number(id)
+
+        return await prismaClient.$transaction(async(tx) => {
+            const order = await tx.order.update({
+                where:{
+                    id:convertIdIntoNumber
+                },
+                data:{
+                    status:status
+                }
+            })
+            if(!order){
+
+              return res.status(404).json({message:'Id not found'})
+            }
+
+            await tx.orderEvent.updateMany({
+                where:{
+                    orderId:order.id
+                },
+                data:{
+                    status:status
+                }
+            })
+
+           res.status(200).json({data:order})
+        })
+    } catch (err:any) {
+        next(
+            new InternalException(
+                'Internal Error',
+                 err?.issues,
+                 ErrorCode.INTERNAL_ERROR
+            )  
+        )
+    }
+}
+
+// ###############################################################################################################//
+/*
+    path api/order/id/status
+    method PUT
+    Chnage Status
+*/
+
+export const listUserOrder = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        let whereClause:any = {
+            userId : Number(req.params.id)
+        }
+        const {status} = req.query
+
+        if(status){
+            whereClause = {
+                ...whereClause,
+                status
+            }
+        }
+
+        const orders = await prismaClient.order.findMany({
+            where: whereClause,
+            skip: Number(req.query.page) || 0,
+            take: 5
+        })
+        res.json(orders)
+
+    } catch (err:any) {
+        next(
+            new InternalException(
+                'Internal Error',
+                 err?.issues,
+                 ErrorCode.INTERNAL_ERROR
+            )  
+        )
+    }
+}

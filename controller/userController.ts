@@ -230,7 +230,10 @@ export const updateUser = async(req:AuthenticatedRequest, res:Response, next:Nex
 
 export const listUser = async(req:Request, res:Response, next:NextFunction) => {
     try {
+             const{page} = req.query
         const user = await prismaClient.user.findMany({
+            skip:Number(page) || 0,
+            take:5,
             select:{
                 id        : true,
                 name      : true,
