@@ -207,6 +207,42 @@ export const getProductById = async(req:Request, res:Response, next:NextFunction
         )
     }
 }
+//######################################################################################################
+/* 
+    Path: path api/product/:id
+    method: GET
+    purpose: GET  product BY ID
+
+*/
+
+export const searchProduct = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        const q = req.query.q?.toString()
+        const product = await prismaClient.product.findMany({
+            where:{
+                name:{
+                    search:q
+                },
+                description:{
+                    search:q
+                },
+                 tags:{
+                    search:q
+                }
+            }
+        })
+
+        res.status(200).json({dataSearch:product})
+    } catch (err:any) {
+        next(
+            new InternalException(
+                'Internal Error',
+                 err?.issues, 
+                 ErrorCode.INTERNAL_ERROR 
+            )
+        )
+    }
+}
 
 
 
